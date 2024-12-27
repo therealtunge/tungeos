@@ -12,7 +12,8 @@ all: bin iso emu
 ifeq (, $(shell which $(TARGET)-$(CC)))
 $(error "get $(TARGET)-$(CC)")
 endif
-
+EXCLUDED_DIR := isodir
+ALL_DIRS := $(shell find . -mindepth 1 -maxdepth 1 -type d ! -name $(EXCLUDED_DIR))
 
 clean:
 	cd boot; \
@@ -24,12 +25,9 @@ clean:
 	rm -f $(wildcard *.o *.iso *.bin)
 	rm -rf isodir
 bin:
-	cd boot; \
-	make
-	cd libc; \
-	make
-	cd kernel; \
-	make
+	@for dir in $(ALL_DIRS); do \
+		$(MAKE) -C $$dir; \
+	done
 	$(TARGET)-$(LD) -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot/boot.o kernel/kernel.o libc.o -lgcc
 iso:
 	mkdir -p isodir/boot/grub

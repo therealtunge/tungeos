@@ -127,20 +127,29 @@ int strlen(const char* str)
 	}
 	return len;
 }
-// end of borrowing from the bare bones tutorial
-#include <stdarg.h>
 
 void puts(const char *string) {
 	for (size_t i = 0; i < strlen(string); i++)
-		terminal_putchar(string[i]);
+		putc(string[i]);
 }
+// end of borrowing from the bare bones tutorial
 
 void putc(const char string) {
 	if (string == '\n') {
+		x = 0;
 		terminal_row++;
 		y++;
 		update_cursor(x, y);
-	} else {
-		terminal_putchar(string);
+		return;
+	} else if (string == 8) { 
+		terminal_putentryat(' ', terminal_color, terminal_column - 1, terminal_row);
+		terminal_column--;
+		x--;
+		update_cursor(x, y);
+		return;
 	}
+	terminal_putchar(string);
+	x++;
+	update_cursor(x, y);
+	return;
 }
