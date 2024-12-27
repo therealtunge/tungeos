@@ -131,18 +131,8 @@ int strlen(const char* str)
 #include <stdarg.h>
 
 void puts(const char *string) {
-	x+=strlen(string);
-	update_cursor(x,y);
-	for (int i = 0; i < strlen(string); i++) {
-		if (string[i] == '\n') {
-			terminal_row++;
-			y++;
-
-			update_cursor(x,y);
-		} else {
-			terminal_putchar(string[i]);
-		}
-	}
+	for (size_t i = 0; i < strlen(string); i++)
+		terminal_putchar(string[i]);
 }
 
 void putc(const char string) {
@@ -150,11 +140,6 @@ void putc(const char string) {
 		terminal_row++;
 		y++;
 		update_cursor(x, y);
-	} else if (string == '\t') {
-		terminal_putchar(' ');
-		terminal_putchar(' ');
-		terminal_putchar(' ');
-		terminal_putchar(' ');
 	} else {
 		terminal_putchar(string);
 	}

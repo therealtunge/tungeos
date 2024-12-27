@@ -3,7 +3,7 @@
 #define STDIO_H
 void puts(const char *string);
 void putc(const char string);
-void printf(const char *restrict format, ...);
+void printf(char *format, ...);
 int getcursor_x();
 int getcursor_y();
 void terminal_initialize();
