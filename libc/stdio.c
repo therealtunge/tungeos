@@ -136,20 +136,17 @@ void puts(const char *string) {
 
 void putc(const char string) {
 	if (string == '\n') {
-		x = 0;
+		terminal_column = 0;
 		terminal_row++;
-		y++;
-		update_cursor(x, y);
+		update_cursor(terminal_column, terminal_row);
 		return;
 	} else if (string == 8) { 
 		terminal_putentryat(' ', terminal_color, terminal_column - 1, terminal_row);
 		terminal_column--;
-		x--;
-		update_cursor(x, y);
+		update_cursor(terminal_column, terminal_row);
 		return;
 	}
 	terminal_putchar(string);
-	x++;
-	update_cursor(x, y);
+	update_cursor(terminal_column, terminal_row);
 	return;
 }

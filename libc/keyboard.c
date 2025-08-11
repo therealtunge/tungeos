@@ -14,13 +14,13 @@ char keymap[128] = {
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   '-', 0,   0,   0,
 	'+', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 0};
 volatile uint8_t buffer_index = 0;
-static inline uint8_t inb(uint16_t port) {
+extern inline uint8_t inb(uint16_t port) {
 	uint8_t value;
 	asm volatile ("inb %1, %0" : "=a"(value) : "Nd"(port));
 	return value;
 }
 
-static inline void outb(uint16_t port, uint8_t value) {
+extern inline void outb(uint16_t port, uint8_t value) {
 	asm volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
@@ -36,5 +36,5 @@ char get_current_key() {
 }
 
 void keyboard_init() {
-	outb(0x21, inb(0x21) & ~0x02);
+	outb(0x21, inb(0x21) & ~0x02);	
 }

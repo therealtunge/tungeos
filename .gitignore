@@ -1,3 +1,6 @@
 *.bin
 *.iso
 *.o
+*.sym
+*.img
+*.py

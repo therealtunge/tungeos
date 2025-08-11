@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-static char* itoa(int i) {
+extern char* itoa(int i) {
 	if(i == 0) {
 		return "0";
 	}
@@ -12,10 +12,6 @@ static char* itoa(int i) {
 	return ++p;    
 }
 
-
-bool is_format_identifier(char c) {
-	return c == 'c' || c == 'd' || c == 's';
-}
 /*
 void printf(const char *restrict format, ...) {
 	va_list ap;
@@ -74,6 +70,11 @@ void printf(char *format, ...) {
 					i++;
 					break;
 				}
+				case ('s'): {
+					puts(va_arg(ap, int*));
+					i++;
+					break;
+				}
 				default: {
 					// for the people who dont know that printf needs specifiers
 					putc(format[i]);
@@ -82,6 +83,40 @@ void printf(char *format, ...) {
 			}
 		} else {
 			putc(format[i]);
+		}
+	}
+	va_end(ap);
+}
+
+void serial_printf(char *format, ...) {
+	va_list ap;
+	va_start(ap, format);
+	for (int i = 0; i < strlen(format); i++) {
+		if (format[i] == 37) { // why is char comparison so janky man, just let me have my format[i] == '%' in peace :(
+			switch(format[i + 1]) {
+				case ('d'): {
+					puts_serial(itoa(va_arg(ap, int)));
+					i++;
+					break;
+				}
+				case ('c'): {
+					write_serial(va_arg(ap, int)); // ok whoever decided that char promotes to int is screwed
+					i++;
+					break;
+				}
+				case ('s'): {
+					puts_serial(va_arg(ap, int*));
+					i++;
+					break;
+				}
+				default: {
+					// for the people who dont know that printf needs specifiers
+					write_serial(format[i]);
+					break;
+				}
+			}
+		} else {
+			write_serial(format[i]);
 		}
 	}
 	va_end(ap);

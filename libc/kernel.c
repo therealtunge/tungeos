@@ -7,6 +7,7 @@ void kprint(const char *msg) {
 
 void panic() {
 	// TODO: implement panic
+
 	puts("!! kernel panic !!");
 	while (1) {
 	}
