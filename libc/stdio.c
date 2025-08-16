@@ -8,8 +8,10 @@
 size_t terminal_row;
 size_t terminal_column;
 uint8_t terminal_color;
-uint16_t* terminal_buffer;
- 
+uint16_t *terminal_buffer;
+int scroll = 0;
+
+
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 25;
 static inline void outb(uint16_t port, uint8_t val)
@@ -33,11 +35,43 @@ static inline uint8_t inb(uint16_t port)
 int x = 0;
 int y = 0;
 
-void update_cursor(int x, int y)
+#define SCREEN (uint16_t*)0xB8000
+
+void* memcpy(void* restrict dstptr, const void* restrict srcptr, size_t size) {
+	unsigned char* dst = (unsigned char*) dstptr;
+	const unsigned char* src = (const unsigned char*) srcptr;
+	for (size_t i = 0; i < size; i++)
+		dst[i] = src[i];
+	return dstptr;
+}
+
+void* memmove(void* dstptr, const void* srcptr, size_t size) {
+	unsigned char* dst = (unsigned char*) dstptr;
+	const unsigned char* src = (const unsigned char*) srcptr;
+	if (dst < src) {
+		for (size_t i = 0; i < size; i++)
+			dst[i] = src[i];
+	} else {
+		for (size_t i = size; i != 0; i--)
+			dst[i-1] = src[i-1];
+	}
+	return dstptr;
+}
+
+static inline volatile void terminal_update() {
+	memmove((uint16_t*) 0xB8000, terminal_buffer + (scroll * VGA_WIDTH), (VGA_HEIGHT * VGA_WIDTH) * 2);
+}
+
+volatile void terminal_scroll(int up_down) { 
+	scroll += up_down;
+	memmove((uint16_t*) 0xB8000, terminal_buffer + (scroll * VGA_WIDTH), (VGA_HEIGHT * VGA_WIDTH) * 2);
+//	terminal_row -= up_down;
+	update_cursor(terminal_column, terminal_row);
+}
+
+static void inline update_cursor(int x, int y)
 {
 	uint16_t pos = y * VGA_WIDTH + x;
-	terminal_row = y;
-	terminal_column = x;
 	outb(0x3D4, 0x0F);
 	outb(0x3D5, (uint8_t) (pos & 0xFF));
 	outb(0x3D4, 0x0E);
@@ -95,7 +129,7 @@ void terminal_initialize(void)
 	terminal_row = 0;
 	terminal_column = 0;
 	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;
+	terminal_buffer = (uint16_t*) 0x80000;
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
@@ -106,16 +140,20 @@ void terminal_initialize(void)
  
 void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) 
 {
-	const size_t index = y * VGA_WIDTH + x;
+	const size_t index = (y * 40) + x;
 	terminal_buffer[index] = vga_entry(c, color);
+	memmove((uint16_t*) 0xB8000, terminal_buffer, (VGA_HEIGHT * VGA_WIDTH) * 2);
 }
+
 void terminal_putchar(char c) 
 {
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
 	if (++terminal_column == VGA_WIDTH) {
-		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+//		terminal_column = 0;
+//		terminal_row++;
+	}
+	if (++terminal_row > VGA_HEIGHT) {
+//		terminal_scroll(1);
 	}
 }
 
@@ -137,7 +175,7 @@ void puts(const char *string) {
 void putc(const char string) {
 	if (string == '\n') {
 		terminal_column = 0;
-		terminal_row++;
+//		terminal_row++;
 		update_cursor(terminal_column, terminal_row);
 		return;
 	} else if (string == 8) { 

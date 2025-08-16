@@ -180,8 +180,8 @@ static int ata_wait_irq(void) {
 	return 0;
 }
 
-int ata_identify(uint16_t *buffer) {
-	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_HDDEVSEL, 0xA0 | ATA_DEV_MASTER);
+int ata_identify(uint16_t *buffer, int slave) {
+	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_HDDEVSEL, 0xA0 | (slave ? ATA_DEV_SLAVE : ATA_DEV_MASTER));
 	ata_io_delay();
 	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
 	ata_io_delay();
@@ -194,11 +194,11 @@ int ata_identify(uint16_t *buffer) {
 	return 0;
 }
 
-int ata_read_sector_lba28(uint32_t lba, uint8_t *buffer) {
+int ata_read_sector_lba28(uint32_t lba, uint8_t *buffer, int slave) {
 	if (lba > 0x0FFFFFFF) return -1;
 	outb(ATA_PRIMARY_CTRL_BASE, 0); // clear nIEN
 	while (inb(ATA_PRIMARY_CMD_BASE + ATA_REG_STATUS) & ATA_SR_BSY);
-	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_HDDEVSEL, 0xE0 | ATA_DEV_MASTER | ((lba >> 24) & 0x0F));
+	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_HDDEVSEL, 0xE0 | (slave ? ATA_DEV_SLAVE : ATA_DEV_MASTER) | ((lba >> 24) & 0x0F));
 	ata_io_delay();
 	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_SECCOUNT, 1);
 	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_LBA_LOW, (uint8_t)(lba & 0xFF));
@@ -215,11 +215,11 @@ int ata_read_sector_lba28(uint32_t lba, uint8_t *buffer) {
 	}
 	return 0;
 }
-int ata_write_sector_lba28(uint32_t lba, const uint8_t *buffer) {
+int ata_write_sector_lba28(uint32_t lba, const uint8_t *buffer, int slave) {
 	if (lba > 0x0FFFFFFF) return -1;
 	outb(ATA_PRIMARY_CTRL_BASE, 0); // clear nIEN
 	while (inb(ATA_PRIMARY_CMD_BASE + ATA_REG_STATUS) & ATA_SR_BSY);
-	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_HDDEVSEL, 0xE0 | ATA_DEV_MASTER | ((lba >> 24) & 0x0F));
+	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_HDDEVSEL, 0xE0 | (slave ? ATA_DEV_SLAVE : ATA_DEV_MASTER) | ((lba >> 24) & 0x0F));
 	ata_io_delay();
 	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_SECCOUNT, 1);
 	outb(ATA_PRIMARY_CMD_BASE + ATA_REG_LBA_LOW, (uint8_t)(lba & 0xFF));

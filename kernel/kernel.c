@@ -2,51 +2,48 @@
 #include <stdio.h>
 #include <kernel.h>
 #include <keyboard.h>
-
-typedef unsigned int uint32_t;
-extern int atapi_read_sectors(uint8_t drive, uint32_t lba, uint16_t sectors, void *outbuf);
-extern int ata_read_sector_lba28(uint32_t lba, uint8_t *buffer);
-extern int ata_write_sector_lba28(uint32_t lba, const uint8_t *buffer);
-extern int atapi_wait_drq(void);
-extern void ata_select(uint8_t drive);
-extern void outb(uint16_t port, uint8_t val);
-extern uint8_t inb(uint16_t port);
-extern uint16_t inw(uint16_t port);
-
-int ata_identify(uint16_t *buffer);
+#include <ata.h>
+#include <stdint.h>
 
 #define ATA_PRIMARY_CMD 0x1F0
 #define ATA_REG_COMMAND (ATA_PRIMARY_CMD+7)
 #define ATA_DR_DATA (ATA_PRIMARY_CMD+0)
 extern char* itoa(int i);
+void terminal_scroll(int up_down);
 
 void kernel_main(void)
 {
 	terminal_initialize();
 	keyboard_init();
-	puts("keyboard initialized\n");
-	puts("welcome to tungeos v0.1\n");
+	printf("keyboard initialized\n");
+	printf("welcome to tungeos v0.1\n");
 	init_serial();
 	uint8_t buffer[512] = {1, 2, 3, 4};
 	uint16_t bufferidentify[256] = {0};
 	uint8_t *buffer8bitidentify = bufferidentify;
-	printf("%d\n", ata_identify(bufferidentify));
+	printf("%d\n", ata_identify(bufferidentify, 0));
 //	write_cdrom(0x1F0, 0, 0x1, 1, buffer);
 //	printf("%d\n", read_cdrom(0x1F0, 0, 0x0, 1, buffer));
-	for (int i = 0; i < 512; i++) {
-		serial_printf("%d ", buffer8bitidentify[i]);
-	}
-	ata_write_sector_lba28(0x0, buffer);
-	serial_printf("\ndata:\n");
-	ata_read_sector_lba28(0x0, buffer);
-	for (int i = 0; i < 512; i++) {
-		serial_printf("%d ", buffer[i]);
-	}
+//	for (int i = 0; i < 512; i++) {
+//		printf("%x ", buffer8bitidentify[i]);
+//	}
+	printf("\ndata:\n");
+	ata_read_sector_lba28(0x0, buffer, 0);
 	
 	while (1) {
-		char key = get_current_key();
+		unsigned char key = get_current_key();
 		if (key != 0) {
-			putc(key);
+			if (key == 0x8F) {
+				terminal_scroll(1);
+			} else if (key == 0x9D) {
+				terminal_scroll(-1);
+			} else if (key == ']') {
+				for (int i = 0; i < 512; i++) {
+					printf("%x ", buffer[i]);
+				}
+			} else {
+				putc(key);
+			}
 		}
 	}
 }

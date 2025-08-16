@@ -23,6 +23,7 @@ clean:
 	rm -f $(wildcard *.o *.iso *.bin)
 	rm -rf isodir
 bin:
+	$(MAKE) -C libc CFLAGS="-Wall -Iinclude -ffreestanding -nostdlib -fno-builtin -D __LIBK"
 	@for dir in $(FOLDERS); do \
 		$(MAKE) -C $$dir; \
 	done
