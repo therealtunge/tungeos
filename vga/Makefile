@@ -1,13 +1,13 @@
 TARGET = i686-elf
 CC = gcc
 LD = ld
-CFLAGS = -Wall -Iinclude -ffreestanding -nostdlib -fno-builtin -O0
+CFLAGS = -Wall -Iinclude -I../libc/include -ffreestanding -nostdlib -fno-builtin -O0
 
 SRCS := $(wildcard *.c)
 
 OBJS := $(SRCS:.c=.o)
 
-OUT := ../libc.o
+OUT := ../vga.o
 
 .PHONY: all clean
 

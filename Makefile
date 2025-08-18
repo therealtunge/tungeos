@@ -5,7 +5,7 @@ AS = as
 CC = gcc
 LD = gcc
 CFLAGS = -c -std=gnu99 -ffreestanding -O2 -Wall -Ilibc/include -nostdlib -fno-builtin -g
-FOLDERS = kernel libc boot
+FOLDERS = kernel libc boot vga
 .PHONY: clean
 all: bin iso emu
 
@@ -26,7 +26,7 @@ bin:
 	@for dir in $(FOLDERS); do \
 		$(MAKE) -C $$dir; \
 	done
-	$(TARGET)-$(LD) -r -o myos.o -ffreestanding -O2 -nostdlib boot/boot.o kernel/kernel.o libc.o
+	$(TARGET)-$(LD) -r -o myos.o -ffreestanding -O2 -nostdlib boot/boot.o vga.o kernel/kernel.o libc.o
 	$(TARGET)-$(LD) -T linker.ld -ffreestanding -nostdlib -o myos.bin -ffreestanding -O2 myos.o
 iso:
 	mkdir -p isodir/boot/grub

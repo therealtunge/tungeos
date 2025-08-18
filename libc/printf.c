@@ -1,6 +1,19 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+extern char* itoah(uint8_t i) {
+	static char output[3];
+	char* p = &output[2];
+	*p-- = 0;
+	for(int shift = 0; shift < 2; shift++) {
+		uint8_t nibble = i & 0xF;
+		*p-- = (nibble < 10) ? ('0' + nibble) : ('A' + nibble - 10);
+		i >>= 4;
+	}
+	return ++p;
+}
 
 extern char* itoa(int i) {
 	if(i == 0) {
@@ -60,6 +73,11 @@ void printf(char *format, ...) {
 	for (int i = 0; i < strlen(format); i++) {
 		if (format[i] == 37) { // why is char comparison so janky man, just let me have my format[i] == '%' in peace :(
 			switch(format[i + 1]) {
+				case ('x'): {
+					puts(itoah(va_arg(ap, int)));
+					i++;
+					break;
+				}
 				case ('d'): {
 					puts(itoa(va_arg(ap, int)));
 					i++;
@@ -94,6 +112,11 @@ void serial_printf(char *format, ...) {
 	for (int i = 0; i < strlen(format); i++) {
 		if (format[i] == 37) { // why is char comparison so janky man, just let me have my format[i] == '%' in peace :(
 			switch(format[i + 1]) {
+				case ('x'): {
+					puts_serial(itoah(va_arg(ap, int)));
+					i++;
+					break;
+				}
 				case ('d'): {
 					puts_serial(itoa(va_arg(ap, int)));
 					i++;

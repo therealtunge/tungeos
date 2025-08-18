@@ -9,7 +9,7 @@ size_t terminal_row;
 size_t terminal_column;
 uint8_t terminal_color;
 uint16_t* terminal_buffer;
- 
+
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 25;
 static inline void outb(uint16_t port, uint8_t val)
@@ -80,7 +80,7 @@ enum vga_color {
 	VGA_COLOR_LIGHT_BROWN = 14,
 	VGA_COLOR_WHITE = 15,
 };
- 
+
 static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) 
 {
 	return fg | bg << 4;
@@ -90,6 +90,30 @@ static inline uint16_t vga_entry(unsigned char uc, uint8_t color)
 {
 	return (uint16_t) uc | (uint16_t) color << 8;
 }
+
+void scroll_down(uint16_t *buf) {
+	int total = VGA_WIDTH * VGA_HEIGHT;
+	int row_size = VGA_WIDTH;
+	for (int i = total - 1; i >= row_size; i--)
+		buf[i] = buf[i - row_size];
+
+
+	terminal_row++;
+	update_cursor(terminal_column, terminal_row);
+}
+void scroll_up(uint16_t *buf) {
+	int total = VGA_WIDTH * VGA_HEIGHT;
+	int row_size = VGA_WIDTH;
+	int i;
+	for (i = 0; i < (total - row_size); i++)
+		buf[i] = buf[i + row_size];
+	
+	for (; i < total; i++)
+		buf[i] = vga_entry(' ', terminal_color);
+
+	
+}
+
 void terminal_initialize(void) 
 {
 	terminal_row = 0;
@@ -130,7 +154,7 @@ int strlen(const char* str)
 
 void puts(const char *string) {
 	for (size_t i = 0; i < strlen(string); i++)
-		putc(string[i]);
+		write_chr(string[i]);
 }
 // end of borrowing from the bare bones tutorial
 
