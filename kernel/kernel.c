@@ -35,20 +35,15 @@ void kernel_main(void)
 //	puts("keyboard initialized\n");
 //	puts("welcome to tungeos v0.1\n");
 	init_serial();
-	uint8_t buffer[512] = {1, 2, 3, 4};
-	uint16_t bufferidentify[256] = {0};
-	uint8_t *buffer8bitidentify = bufferidentify;
 //	write_cdrom(0x1F0, 0, 0x1, 1, buffer);
 //	printf("%d\n", read_cdrom(0x1F0, 0, 0x0, 1, buffer));
-	ata_write_sector_lba28(0x0, buffer);
+//	ata_write_sector_lba28(0x0, buffer);
 //	printf("\ndata:\n");
-	ata_read_sector_lba28(0x0, buffer);
-	for (int i = 0; i < 512; i++) {
-//		printf("%d ", buffer[i]);
-	}
-	
 	init_vga();
 	set_screen(1);
+	puts("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
+	puts("0123456789 !@#$\n");
+	testfs();
 	while (1) {
 		char key = get_current_key();
 		if (key != 0) {

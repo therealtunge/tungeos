@@ -1,3 +1,4 @@
+#ifdef _LIBK
 #include <kernel.h>
 #include <stdio.h>
 
@@ -12,3 +13,4 @@ void panic() {
 	while (1) {
 	}
 }
+#endif

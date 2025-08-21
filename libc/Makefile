@@ -1,7 +1,7 @@
 TARGET = i686-elf
 CC = gcc
 LD = ld
-CFLAGS = -Wall -Iinclude -ffreestanding -nostdlib -fno-builtin -O0
+CFLAGS := $(CFLAGS_EXTRA) -Wall -Iinclude -ffreestanding -nostdlib -fno-builtin -O0
 
 SRCS := $(wildcard *.c)
 
@@ -14,6 +14,7 @@ OUT := ../libc.o
 all: $(OBJS) $(OUT)
 
 %.o: %.c
+	echo $(CFLAGS)
 	$(TARGET)-$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OUT): $(OBJS)
