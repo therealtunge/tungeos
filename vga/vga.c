@@ -3,10 +3,11 @@
 extern void init_vga() {
 	write_regs(g_320x200x256);
 }
+
+#define VGA_FB ((unsigned char *)0xC03F0000)
 extern void set_screen(unsigned int c) {
-	for(int y = 0; y < g_ht; y++)
-		for(int x = 0; x < g_wd; x++)
-			write_pixel8(x, y, c);
+	for(int i = 0; i < 65535; i++)
+		VGA_FB[i] = c;	
 }
 
 extern inline void clear_screen() {

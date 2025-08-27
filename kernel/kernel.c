@@ -26,11 +26,12 @@ int ata_identify(uint16_t *buffer);
 #define ATA_REG_COMMAND (ATA_PRIMARY_CMD+7)
 #define ATA_DR_DATA (ATA_PRIMARY_CMD+0)
 extern char* itoa(int i);
-
+#define VGA_FB ((unsigned char *)0xC03FF000)
 
 void kernel_main(void)
 {
-	terminal_initialize();
+	serial_printf("a");
+//	terminal_initialize();
 	keyboard_init();
 //	puts("keyboard initialized\n");
 //	puts("welcome to tungeos v0.1\n");
@@ -39,8 +40,14 @@ void kernel_main(void)
 //	printf("%d\n", read_cdrom(0x1F0, 0, 0x0, 1, buffer));
 //	ata_write_sector_lba28(0x0, buffer);
 //	printf("\ndata:\n");
+//	init_vga();
+//	VGA_FB[0] = 1;
+//	putc('a');
+	serial_printf("b");
 	init_vga();
+	unsigned char *fb = ((unsigned char *)0xC03F0000);
 	set_screen(1);
+	
 	puts("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
 	puts("0123456789 !@#$\n");
 	testfs();

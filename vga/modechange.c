@@ -60,11 +60,12 @@ static unsigned int get_fb_seg(void)
 	seg = inb(VGA_GC_DATA);
 	seg >>= 2;
 	seg &= 3;
+	serial_printf("%d ", seg);
 	switch(seg)
 	{
 	case 0:
 	case 1:
-		seg = 0xA000;
+		seg = 0xC03FF000;
 		break;
 	case 2:
 		seg = 0xB000;
@@ -76,28 +77,16 @@ static unsigned int get_fb_seg(void)
 	return seg;
 }
 
-static inline void _vmemwr(unsigned int DS, unsigned int DO, const void *src, unsigned int N)
+#define VGA_FB ((unsigned char *)0xC03F0000)
+
+static void vpokeb(unsigned int off, unsigned char val)
 {
-	unsigned char *dst = (unsigned char *)(RM2LIN(DS, DO));
-	const unsigned char *s = (const unsigned char *)src;
-	while (N--) *dst++ = *s++;
+	VGA_FB[off] = val;
 }
 
-static void vmemwr(unsigned int dst_off, unsigned char *src, unsigned int count)
-{
-	_vmemwr(get_fb_seg(), dst_off, src, count);
-}
-/*****************************************************************************
-*****************************************************************************/
-static void vpokeb(unsigned int off, unsigned int val)
-{
-	pokeb(get_fb_seg(), off, val);
-}
-/*****************************************************************************
-*****************************************************************************/
 static unsigned int vpeekb(unsigned int off)
 {
-	return peekb(get_fb_seg(), off);
+	return VGA_FB[off];
 }
 
 /*****************************************************************************
@@ -106,26 +95,6 @@ is different from BIOS mode 05h in two ways:
 - Framebuffer is at A000:0000 instead of B800:0000
 - Framebuffer is linear (no screwy line-by-line CGA addressing)
 *****************************************************************************/
-
-extern unsigned char g_720x480x16[] =
-{
-/* MISC */
-	0xE7,
-/* SEQ */
-	0x03, 0x01, 0x08, 0x00, 0x06,
-/* CRTC */
-	0x6B, 0x59, 0x5A, 0x82, 0x60, 0x8D, 0x0B, 0x3E,
-	0x00, 0x40, 0x06, 0x07, 0x00, 0x00, 0x00, 0x00,
-	0xEA, 0x0C, 0xDF, 0x2D, 0x08, 0xE8, 0x05, 0xE3,
-	0xFF,
-/* GC */
-	0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x05, 0x0F,
-	0xFF,
-/* AC */
-	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-	0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-	0x01, 0x00, 0x0F, 0x00, 0x00,
-};
 
 extern unsigned char g_320x200x256[] =
 {
@@ -204,7 +173,7 @@ extern void write_pixel8(unsigned int x, unsigned int y, unsigned char c)
 {
 
 	unsigned int off = 320 * y + x;
-	vpokeb(off, c);
+	VGA_FB[off] = c;
 }
 
 void read_regs(unsigned char *regs)
