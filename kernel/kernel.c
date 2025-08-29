@@ -33,8 +33,6 @@ void kernel_main(void)
 	serial_printf("a");
 //	terminal_initialize();
 	keyboard_init();
-//	puts("keyboard initialized\n");
-//	puts("welcome to tungeos v0.1\n");
 	init_serial();
 //	write_cdrom(0x1F0, 0, 0x1, 1, buffer);
 //	printf("%d\n", read_cdrom(0x1F0, 0, 0x0, 1, buffer));
@@ -45,9 +43,10 @@ void kernel_main(void)
 //	putc('a');
 	serial_printf("b");
 	init_vga();
-	unsigned char *fb = ((unsigned char *)0xC03F0000);
 	set_screen(1);
 	
+	puts("keyboard initialized\n");
+	puts("welcome to tungeos v0.1\n");
 	puts("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
 	puts("0123456789 !@#$\n");
 	testfs();

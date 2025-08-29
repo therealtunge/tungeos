@@ -500,7 +500,6 @@ void write_chr_helper(char chr, int x, int y) {
 }
 
 void write_chr(char chr) {
-//	serial_printf("%d ", chr);
 	if (chr == '\n') {
 			vga_y += 6;
 			vga_x = 2;

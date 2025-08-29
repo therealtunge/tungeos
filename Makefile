@@ -35,4 +35,4 @@ iso:
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o myos.iso isodir
 emu:
-	qemu-system-$(EMU_TARGET) -m 4G -boot d -drive id=cdrom,media=cdrom,file=myos.iso,if=ide,bus=0,unit=1 -drive format=raw,id=disk,file=drive,if=ide,bus=0,unit=0 -serial stdio
+	qemu-system-$(EMU_TARGET) -m 4G -boot d -drive id=cdrom,media=cdrom,file=myos.iso,if=ide,bus=0,unit=1 -drive format=raw,id=disk,file=fat32.img,if=ide,bus=0,unit=0 -serial stdio
