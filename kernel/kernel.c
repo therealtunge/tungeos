@@ -19,8 +19,11 @@ char *to_uppercase_copy(const char *src, char *dst) {
 	return dst;
 }
 
+void PIC_remap(int offset1, int offset2);
+
 void kernel_main(void)
 {
+	PIC_remap(0x20, 0x28);
 	keyboard_init();
 	init_serial();
 	init_vga();

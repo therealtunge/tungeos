@@ -19,7 +19,7 @@ static idtr_t idtr;
 
 __attribute__((noreturn))
 void exception_handler(uint8_t intno) {
-	printf("aaa %d", intno);
+	serial_printf("aaa %d", intno);
     __asm__ volatile("cli");
     for (;;) { __asm__ volatile("hlt"); }
 }
