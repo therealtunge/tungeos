@@ -15,16 +15,56 @@ extern char* itoah(uint8_t i) {
 	return ++p;
 }
 
-extern char* itoa(int i) {
-	if(i == 0) {
-		return "0";
+static char *uitoa(unsigned int value) {
+	static char buf[11]; // max for 32-bit unsigned: 4294967295 + '\0'
+	char *p = buf;
+	char *start = p;
+
+	do {
+		*p++ = (value % 10) + '0';
+		value /= 10;
+	} while (value);
+
+	*p = '\0';
+
+	// reverse string
+	for (char *i = start, *j = p - 1; i < j; i++, j--) {
+		char tmp = *i;
+		*i = *j;
+		*j = tmp;
 	}
-	static char output[24];  // 64-bit MAX_INT is 20 digits
-	char* p = &output[23];
-	for(*p--=0;i;i/=10) *p--=i%10+0x30; 
-	return ++p;    
+
+	return buf;
 }
 
+char *itoa(int value) {
+	static char buf[12]; // enough for -2147483648 + '\0'
+	char *p = buf;
+	int sign = value;
+
+	if (value < 0)
+		value = -value;
+
+	char *start = p;
+	do {
+		*p++ = (value % 10) + '0';
+		value /= 10;
+	} while (value);
+
+	if (sign < 0)
+		*p++ = '-';
+
+	*p = '\0';
+
+	// reverse string
+	for (char *i = start, *j = p - 1; i < j; i++, j--) {
+		char tmp = *i;
+		*i = *j;
+		*j = tmp;
+	}
+
+	return buf;
+}
 /*
 void printf(const char *restrict format, ...) {
 	va_list ap;
@@ -84,7 +124,7 @@ void printf(char *format, ...) {
 					break;
 				}
 				case ('c'): {
-					putc(va_arg(ap, int)); // ok whoever decided that char promotes to int is screwed
+					write_chr(va_arg(ap, int)); // ok whoever decided that char promotes to int is screwed
 					i++;
 					break;
 				}
@@ -95,12 +135,12 @@ void printf(char *format, ...) {
 				}
 				default: {
 					// for the people who dont know that printf needs specifiers
-					putc(format[i]);
+					write_chr(format[i]);
 					break;
 				}
 			}
 		} else {
-			putc(format[i]);
+			write_chr(format[i]);
 		}
 	}
 	va_end(ap);
@@ -119,6 +159,11 @@ void serial_printf(char *format, ...) {
 				}
 				case ('d'): {
 					puts_serial(itoa(va_arg(ap, int)));
+					i++;
+					break;
+				}
+				case ('u'): {
+					puts_serial(uitoa(va_arg(ap, int)));
 					i++;
 					break;
 				}

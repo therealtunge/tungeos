@@ -1,8 +1,8 @@
 #pragma once
 #include <vga/modechange.h>
 
-#define g_wd 720
-#define g_ht 480
+#define g_wd 320
+#define g_ht 200
 
 extern void init_vga();
 extern void set_screen(unsigned int c);

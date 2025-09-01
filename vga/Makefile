@@ -1,7 +1,7 @@
 TARGET = i686-elf
 CC = gcc
 LD = ld
-CFLAGS = -Wall -Iinclude -I../libc/include -ffreestanding -nostdlib -fno-builtin -O0
+CFLAGS = -Wall -Iinclude -I../libc/include -ffreestanding -nostdlib -fno-builtin -O0 -fPIE
 
 SRCS := $(wildcard *.c)
 

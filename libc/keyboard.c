@@ -40,6 +40,7 @@ char numlock_handler_helper(uint8_t scancode) {
 	}
 }*/
 
+
 char numlock_helper(uint8_t ret) {
 	if (ret == 0x81) {
 		scroll_up((uint16_t *) 0xB8000);
@@ -62,7 +63,7 @@ char numlock_handler(uint8_t scancode) {
 	return numlock_helper(ret);
 }
 
-char get_current_key() {
+static char _getch() {
 	uint8_t status = inb(KEYBOARD_STATUS_PORT);
 	if (status & 1) {
 		uint8_t scancode = inb(KEYBOARD_DATA_PORT);
@@ -77,6 +78,15 @@ char get_current_key() {
 		}
 	}
 	return 0;
+}
+
+char getch() {
+	while (1) {
+		char key = _getch();
+		if (key != 0) {
+			return key;
+		}
+	}
 }
 
 void keyboard_init() {

@@ -2,7 +2,7 @@
 /* Low level disk I/O module skeleton for Petit FatFs (C)ChaN, 2014      */
 /*-----------------------------------------------------------------------*/
 
-#include "diskio.h"
+#include <fat/diskio.h>
 #include <stdio.h>
 #include <ata.h>
 

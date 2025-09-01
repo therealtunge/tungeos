@@ -10,7 +10,8 @@ typedef unsigned short uint16_t;
 
 extern volatile uint8_t buffer_index;
 
-char get_current_key();
+char _getch();
 void keyboard_init();
+char getch();
 
 #endif

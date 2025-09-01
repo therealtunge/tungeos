@@ -35,8 +35,8 @@
 /                     Removed some code pages actually not valid.
 /----------------------------------------------------------------------------*/
 
-#include "pff.h"		/* Petit FatFs configurations and declarations */
-#include "diskio.h"		/* Declarations of low level disk I/O functions */
+#include <fat/pff.h>		/* Petit FatFs configurations and declarations */
+#include <fat/diskio.h>		/* Declarations of low level disk I/O functions */
 
 
 
@@ -606,21 +606,15 @@ static BYTE check_fs (	/* 0:The FAT boot record, 1:Valid boot record but not an 
 /*-----------------------------------------------------------------------*/
 /* Mount/Unmount a Locical Drive                                         */
 /*-----------------------------------------------------------------------*/
-
-FRESULT pf_mount (
-	FATFS *fs		/* Pointer to new file system object */
-)
+FRESULT pf_mount ()
 {
 	BYTE fmt, buf[36];
 	DWORD bsect, fsize, tsect, mclst;
 
 
 	FatFs = 0;
-
-	if (disk_initialize() & STA_NOINIT) {	/* Check if the drive is ready or not */
-		return FR_NOT_READY;
-	}
-
+	static FATFS _fs;
+	FATFS *fs = &_fs;
 	/* Search FAT partition on the drive */
 	bsect = 0;
 	fmt = check_fs(buf, bsect);			/* Check sector 0 as an SFD format */
@@ -682,10 +676,13 @@ FRESULT pf_mount (
 /* Open or Create a File                                                 */
 /*-----------------------------------------------------------------------*/
 
+
+
 FRESULT pf_open (
 	const char *path	/* Pointer to the file name */
 )
 {
+
 	FRESULT res;
 	DIR dj;
 	BYTE sp[12], dir[32];
@@ -718,9 +715,7 @@ FRESULT pf_open (
 
 FRESULT pf_read (
 	void* buff,		/* Pointer to the read buffer (NULL:Forward data to the stream)*/
-	UINT btr,		/* Number of bytes to read */
-	UINT* br		/* Pointer to number of bytes read */
-)
+	UINT btr)
 {
 	DRESULT dr;
 	CLUST clst;
@@ -730,7 +725,7 @@ FRESULT pf_read (
 	FATFS *fs = FatFs;
 
 
-	*br = 0;
+//	*br = 0;
 	if (!fs) return FR_NOT_ENABLED;		/* Check file system */
 	if (!(fs->flag & FA_OPENED)) return FR_NOT_OPENED;	/* Check if opened */
 
@@ -758,7 +753,8 @@ FRESULT pf_read (
 		dr = disk_readp(rbuff, fs->dsect, (UINT)fs->fptr % 512, rcnt);
 		if (dr) ABORT(FR_DISK_ERR);
 		fs->fptr += rcnt;							/* Advances file read pointer */
-		btr -= rcnt; *br += rcnt;					/* Update read counter */
+		btr -= rcnt; 
+		//*br += rcnt;					/* Update read counter */
 		if (rbuff) rbuff += rcnt;					/* Advances the data pointer if destination is memory */
 	}
 
@@ -966,7 +962,7 @@ FRESULT pf_readdir (
 #include <stdio.h>
 
 char path[500] = "";
-int helper() {
+static int helper() {
 	FRESULT res;
 	FILINFO fno;
 	DIR dir;
@@ -994,6 +990,12 @@ int helper() {
 int testfs() {
 	FATFS fs;
 	int res = pf_mount(&fs);
-	serial_printf("\n%d\n", res);
+//	serial_printf("\n%d\n", res);
 	helper();
+	char buf[500];
+	res = pf_open("U");
+	if (res) { return res; }
+	res = pf_read(buf, 5);
+	serial_printf("%s ", buf);
+	return 0;
 }

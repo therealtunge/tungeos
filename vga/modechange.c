@@ -60,7 +60,6 @@ static unsigned int get_fb_seg(void)
 	seg = inb(VGA_GC_DATA);
 	seg >>= 2;
 	seg &= 3;
-	serial_printf("%d ", seg);
 	switch(seg)
 	{
 	case 0:

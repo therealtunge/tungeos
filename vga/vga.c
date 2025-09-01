@@ -6,7 +6,7 @@ extern void init_vga() {
 
 #define VGA_FB ((unsigned char *)0xC03F0000)
 extern void set_screen(unsigned int c) {
-	for(int i = 0; i < 65535; i++)
+	for(int i = 0; i < (g_ht * g_wd); i++)
 		VGA_FB[i] = c;	
 }
 

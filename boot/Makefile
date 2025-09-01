@@ -1,5 +1,6 @@
 TARGET := i686-elf
 AS := as
+CC := gcc
 SRCS := boot.s
 OBJS := $(SRCS:.s=.o)
 

@@ -1,8 +1,8 @@
 # Declare constants for the multiboot header.
-.set ALIGN,    1<<0             # align loaded modules on page boundaries
-.set MEMINFO,  1<<1             # provide memory map
-.set FLAGS,    ALIGN | MEMINFO  # this is the Multiboot 'flag' field
-.set MAGIC,    0x1BADB002       # 'magic number' lets bootloader find the header
+.set ALIGN,	1<<0			 # align loaded modules on page boundaries
+.set MEMINFO,  1<<1			 # provide memory map
+.set FLAGS,	ALIGN | MEMINFO  # this is the Multiboot 'flag' field
+.set MAGIC,	0x1BADB002	   # 'magic number' lets bootloader find the header
 .set CHECKSUM, -(MAGIC + FLAGS) # checksum of above, to prove we are multiboot
 
 # Declare a multiboot header that marks the program as a kernel.
@@ -27,6 +27,8 @@ boot_page_directory:
 	.skip 4096
 boot_page_table1:
 	.skip 4096
+boot_page_table2:
+	.skip 4096
 # Further page tables may be required if the kernel grows beyond 3 MiB.
 
 # The kernel entry point.
@@ -36,13 +38,13 @@ boot_page_table1:
 _start:
 	# Physical address of boot_page_table1.
 	# TODO: I recall seeing some assembly that used a macro to do the
-	#       conversions to and from physical. Maybe this should be done in this
-	#       code as well?
+	#	   conversions to and from physical. Maybe this should be done in this
+	#	   code as well?
 	movl $(boot_page_table1 - 0xC0000000), %edi
 	# First address to map is address 0.
 	# TODO: Start at the first kernel page instead. Alternatively map the first
-	#       1 MiB as it can be generally useful, and there's no need to
-	#       specially map the VGA buffer.
+	#	   1 MiB as it can be generally useful, and there's no need to
+	#	   specially map the VGA buffer.
 	movl $0, %esi
 	# Map 1023 pages. The 1024th will be the VGA text buffer.
 	movl $1007, %ecx
@@ -86,7 +88,16 @@ _start:
 	movl $(0x000AD000 | 0x003), boot_page_table1 - 0xC0000000 + 1021 * 4
 	movl $(0x000AE000 | 0x003), boot_page_table1 - 0xC0000000 + 1022 * 4
 	movl $(0x000AF000 | 0x003), boot_page_table1 - 0xC0000000 + 1023 * 4
-
+	# map userspace
+	movl $(0x10000000 | 0x003), boot_page_table2 - 0xC0000000 + 0
+	movl $(0x10001000 | 0x003), boot_page_table2 - 0xC0000000 + 1 * 4
+	movl $(0x10002000 | 0x003), boot_page_table2 - 0xC0000000 + 2 * 4
+	movl $(0x10003000 | 0x003), boot_page_table2 - 0xC0000000 + 3 * 4
+	movl $(0x10004000 | 0x003), boot_page_table2 - 0xC0000000 + 4 * 4
+	movl $(0x10005000 | 0x003), boot_page_table2 - 0xC0000000 + 5 * 4
+	movl $(0x10006000 | 0x003), boot_page_table2 - 0xC0000000 + 6 * 4
+	movl $(0x10007000 | 0x003), boot_page_table2 - 0xC0000000 + 7 * 4
+	movl $(0x10008000 | 0x003), boot_page_table2 - 0xC0000000 + 8 * 4
 	# The page table is used at both page directory entry 0 (virtually from 0x0
 	# to 0x3FFFFF) (thus identity mapping the kernel) and page directory entry
 	# 768 (virtually from 0xC0000000 to 0xC03FFFFF) (thus mapping it in the
@@ -95,8 +106,9 @@ _start:
 	# would instead page fault if there was no identity mapping.
 
 	# Map the page table to both virtual addresses 0x00000000 and 0xC0000000.
-	movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 0
+	movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000
 	movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 768 * 4
+	movl $(boot_page_table2 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 64*4
 
 	# Set cr3 to the address of the boot_page_directory.
 	movl $(boot_page_directory - 0xC0000000), %ecx
@@ -125,8 +137,64 @@ _start:
 
 	# Set up the stack.
 	mov $stack_top, %esp
+	# set up gdt
+	jmp load_gdt
+	gdt:
 
+	
+	gdt_start:
+		.quad 0				 # null descriptor
+
+	gdt_code:
+		.word 0xFFFF			# limit low
+		.word 0x0000			# base low
+		.byte 0x00			  # base mid
+		.byte 0x9A			  # access
+		.byte 0xCF			  # granularity
+		.byte 0x00			  # base high
+
+	gdt_data:
+		.word 0xFFFF
+		.word 0x0000
+		.byte 0x00
+		.byte 0x92
+		.byte 0xCF
+		.byte 0x00
+	user_code:
+		.word 0xFFFF		# limit low
+		.word 0x0000		# base low
+		.byte 0x00		  # base mid
+		.byte 0xFA		  # access (present, DPL=3, code/ex-read)
+		.byte 0xCF		  # granularity (flags + limit high)
+		.byte 0x00		  # base high
+
+	# 0x20: user data (index 4)
+	user_data:
+		.word 0xFFFF
+		.word 0x0000
+		.byte 0x00
+		.byte 0xF2		  # access (present, DPL=3, data rw)
+		.byte 0xCF
+		.byte 0x00
+
+	gdt_end:
+
+	gdt_ptr:
+		.word gdt_end - gdt_start - 1   # limit
+		.long gdt_start				 # base
+
+load_gdt:
+	lgdt gdt_ptr
+	mov $0x10, %ax	   # data selector (second descriptor, index 2 << 3 = 0x10)
+	mov %ax, %ds
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
+	mov %ax, %ss
+
+	ljmp $0x08, $next	# far jump to reload CS with code selector (index 1 << 3 = 0x08)
 	# Enter the high-level kernel.
+next:
 	call kernel_main
 
 	# Infinite loop if the system has nothing more to do.
