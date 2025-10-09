@@ -4,6 +4,7 @@
 #include "multiboot.h"
 #include <stdio.h>
 
+
 uint32_t *fb;
 int fb_width, fb_height;
 
@@ -14,4 +15,8 @@ void kernel_main(multiboot_info_t *mboot_ptr)
 	fb_width = mboot_ptr->framebuffer_width;
 	printf("found fb at: %u\n", fb);
 	printf("mboot->fb_height: %d\nmboot->fb_width: %d\n", mboot_ptr->framebuffer_height, mboot_ptr->framebuffer_width);
+	init_descriptor_tables();
+	printf("gdt and idt initalized\n");
+	asm volatile("sti");
+	init_timer(1000);
 }
